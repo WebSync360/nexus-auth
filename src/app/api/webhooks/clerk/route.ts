@@ -4,7 +4,7 @@ import { WebhookEvent } from '@clerk/nextjs/server'
 import { createClient } from '@supabase/supabase-js'
 
 export async function POST(req: Request) {
-  // Define bypass headers for ngrok
+  // This header kills the ngrok warning page for the Clerk robot
   const bypassHeaders = {
     "ngrok-skip-browser-warning": "true",
     "Content-Type": "application/json",
@@ -13,7 +13,6 @@ export async function POST(req: Request) {
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET
   if (!WEBHOOK_SECRET) throw new Error('Missing webhook secret')
 
-  // 1. Verify the message
   const headerPayload = await headers();
   const svix_id = headerPayload.get("svix-id");
   const svix_timestamp = headerPayload.get("svix-timestamp");
@@ -21,7 +20,7 @@ export async function POST(req: Request) {
 
   if (!svix_id || !svix_timestamp || !svix_signature) {
     return new Response('Error occured -- no svix headers', { 
-      status: 400,
+      status: 400, 
       headers: bypassHeaders 
     })
   }
@@ -40,12 +39,11 @@ export async function POST(req: Request) {
   } catch (err) {
     console.error('Webhook verification failed:', err)
     return new Response('Error occured', { 
-      status: 400,
+      status: 400, 
       headers: bypassHeaders 
     })
   }
 
-  // 2. Handle the "User Created" event
   if (evt.type === 'user.created') {
     const { id, email_addresses, image_url, first_name, last_name } = evt.data;
     
@@ -54,7 +52,6 @@ export async function POST(req: Request) {
         process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    // 3. Insert into "profiles"
     const { error } = await supabase.from('profiles').insert({
       id: id,
       email: email_addresses[0].email_address,
@@ -65,7 +62,7 @@ export async function POST(req: Request) {
     if (error) {
         console.log('Supabase Error:', error.message)
         return new Response('Database Error', { 
-          status: 500,
+          status: 500, 
           headers: bypassHeaders 
         })
     }
@@ -73,8 +70,8 @@ export async function POST(req: Request) {
     console.log('User synced to Supabase successfully!')
   }
 
-  return new Response(JSON.stringify({ message: 'Success' }), { 
-    status: 200,
+  return new Response(JSON.stringify({ success: true }), { 
+    status: 200, 
     headers: bypassHeaders 
   })
 }
