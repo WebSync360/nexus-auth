@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+cat << 'EOF' > README.md
+# NEXUS-AUTH | Production-Grade Auth & Data Sync
 
-## Getting Started
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat&logo=next.js)](https://nextjs.org/)
+[![Clerk](https://img.shields.io/badge/Auth-Clerk-6C47FF?style=flat&logo=clerk)](https://clerk.com/)
+[![Supabase](https://img.shields.io/badge/Database-Supabase-3ECF8E?style=flat&logo=supabase)](https://supabase.com/)
 
-First, run the development server:
+### Project Overview
+A robust Full-Stack foundation featuring secure authentication, real-time database synchronization via webhooks, and protected dashboard architecture.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### The Problem
+Many SaaS applications struggle with **Data Inconsistency**. Users sign up via third-party Auth providers (like Google or GitHub), but their profiles aren't properly synced to the internal application database. This leads to broken user experiences, manual data entry, and security vulnerabilities where the Auth state and Database state are out of alignment.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### The Solution
+I engineered a **Serverless Sync Architecture**. Using **Clerk Webhooks (Svix)**, the application listens for `user.created` events. When a user authenticates, a secure POST request triggers a backend route that validates the payload signature and automatically provisions a new user record in **Supabase (PostgreSQL)**. This ensures that the application database is always a "Source of Truth" for authenticated users.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+### Tech Stack & Architectural Choices
 
-To learn more about Next.js, take a look at the following resources:
+| Technology | Purpose | Why? |
+| :--- | :--- | :--- |
+| **Next.js 15 (App Router)** | Framework | Utilizing Server Components for SEO and fast initial page loads. |
+| **Clerk** | Authentication | Handles session management and OAuth (Google) with zero security overhead. |
+| **Supabase / PostgreSQL** | Database | Relational structure allows for complex user data scaling and RLS security. |
+| **Svix / Webhooks** | Data Sync | Guaranteed delivery of Auth events from Clerk to our internal DB. |
+| **Tailwind CSS** | Styling | Rapid, responsive UI development with a consistent design system. |
+| **TypeScript** | Type Safety | Reducing runtime errors and ensuring data integrity across the stack. |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Key Features
+* **Secure Middleware:** Custom `clerkMiddleware` to protect `/dashboard` while keeping landing pages public.
+* **Automated User Provisioning:** Real-time sync between Auth provider and PostgreSQL.
+* **Row Level Security (RLS):** Database-level protection ensuring users can only access their own data.
+* **Production-Ready Webhooks:** Implementation of Svix headers to verify incoming request authenticity.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Future Roadmap (Scalability)
+- [ ] **Multi-Tenant Roles:** Implementing Admin vs. User permissions.
+- [ ] **Activity Logging:** Tracking user interactions within the PostgreSQL schema.
+- [ ] **Email Automation:** Integrating Resend to trigger welcome sequences post-sync.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+**Built by DevBlaze — Product Engineer**
+
+---
