@@ -1,4 +1,3 @@
-cat << 'EOF' > README.md
 # NEXUS-AUTH | Production-Grade Auth & Data Sync
 
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat&logo=next.js)](https://nextjs.org/)
