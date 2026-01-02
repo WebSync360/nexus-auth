@@ -21,7 +21,7 @@ export default function Home() {
 
       {/* Hero Section */}
       <h1 className="text-5xl font-extrabold text-white mb-6">
-        Derian Website
+        NEXUS AUTH
       </h1>
       <p className="text-zinc-400 text-lg mb-8 max-w-md">
         Your SaaS foundation is ready. Database synced, Auth secured.
