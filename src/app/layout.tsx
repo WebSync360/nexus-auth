@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { RootProvider } from "@/providers/root-provider";
-import { ClerkProvider } from "@clerk/nextjs"; // 1. Keep this import
+import { ClerkProvider } from "@clerk/nextjs";
+import { dark } from "@clerk/themes";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Derian Digital | Secure Coaching Portal",
-  description: "Modern high-performance web solutions",
+  title: "Nexus Auth | Production-Ready SaaS Foundation",
+  description: "Secure Auth-to-DB synchronization built with Next.js 15, Clerk, and Supabase.",
 };
 
 export default function RootLayout({
@@ -25,10 +26,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // 2. Wrap EVERYTHING in ClerkProvider
-    <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <ClerkProvider
+      appearance={{
+        baseTheme: dark,
+        variables: { colorPrimary: "#4f46e5" }, 
+      }}
+    >
+      <html lang="en" suppressHydrationWarning className="dark">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} bg-zinc-950 text-zinc-50 antialiased selection:bg-indigo-500/30`}
+        >
           <RootProvider>
             {children}
           </RootProvider>
