@@ -7,7 +7,7 @@ export default function Home() {
     <div className="fixed top-5 right-5">
   <SignedOut>
     <SignInButton mode="modal">
-      <Button variant="outline">Sign In</Button>
+      <Button variant="outline">Sign In.</Button>
     </SignInButton>
   </SignedOut>
   <SignedIn>

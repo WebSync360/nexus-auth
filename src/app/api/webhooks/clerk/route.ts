@@ -4,15 +4,28 @@ import { WebhookEvent } from '@clerk/nextjs/server'
 import { createClient } from '@supabase/supabase-js'
 
 export async function POST(req: Request) {
-  // This header kills the ngrok warning page for the Clerk robot
+  // 1. Define bypass headers to stop ngrok from blocking the Clerk robot
   const bypassHeaders = {
     "ngrok-skip-browser-warning": "true",
     "Content-Type": "application/json",
   };
 
+  // 2. Load Environment Variables
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET
-  if (!WEBHOOK_SECRET) throw new Error('Missing webhook secret')
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY 
 
+  // 3. Safety check: Ensure Supabase keys are loaded
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error("❌ ERROR: Supabase environment variables are missing in .env.local!")
+    return new Response('Configuration Error', { status: 500, headers: bypassHeaders })
+  }
+
+  if (!WEBHOOK_SECRET) {
+    throw new Error('Missing Clerk Webhook Secret')
+  }
+
+  // 4. Get Svix headers for verification
   const headerPayload = await headers();
   const svix_id = headerPayload.get("svix-id");
   const svix_timestamp = headerPayload.get("svix-timestamp");
@@ -25,6 +38,7 @@ export async function POST(req: Request) {
     })
   }
 
+  // 5. Verify the payload
   const payload = await req.json()
   const body = JSON.stringify(payload)
   const wh = new Webhook(WEBHOOK_SECRET);
@@ -37,20 +51,19 @@ export async function POST(req: Request) {
       "svix-signature": svix_signature,
     }) as WebhookEvent
   } catch (err) {
-    console.error('Webhook verification failed:', err)
-    return new Response('Error occured', { 
+    console.error('❌ Webhook verification failed:', err)
+    return new Response('Verification Error', { 
       status: 400, 
       headers: bypassHeaders 
     })
   }
 
+  // 6. Handle "User Created" Event
   if (evt.type === 'user.created') {
     const { id, email_addresses, image_url, first_name, last_name } = evt.data;
     
-    const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!, 
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    // Initialize Supabase with the Service Role Key
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     const { error } = await supabase.from('profiles').insert({
       id: id,
@@ -60,14 +73,14 @@ export async function POST(req: Request) {
     })
 
     if (error) {
-        console.log('Supabase Error:', error.message)
-        return new Response('Database Error', { 
-          status: 500, 
-          headers: bypassHeaders 
-        })
+      console.log('❌ Supabase Insert Error:', error.message)
+      return new Response('Database Error', { 
+        status: 500, 
+        headers: bypassHeaders 
+      })
     }
     
-    console.log('User synced to Supabase successfully!')
+    console.log('✅ SUCCESS: User synced to Supabase!')
   }
 
   return new Response(JSON.stringify({ success: true }), { 
