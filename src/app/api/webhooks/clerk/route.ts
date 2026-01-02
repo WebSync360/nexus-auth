@@ -22,7 +22,8 @@ export async function POST(req: Request) {
   }
 
   if (!WEBHOOK_SECRET) {
-    throw new Error('Missing Clerk Webhook Secret')
+    console.error("❌ ERROR: Missing CLERK_WEBHOOK_SECRET")
+    return new Response('Configuration Error', { status: 500, headers: bypassHeaders })
   }
 
   // 4. Get Svix headers for verification
@@ -65,11 +66,12 @@ export async function POST(req: Request) {
     // Initialize Supabase with the Service Role Key
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
+    // FIXED: Added optional chaining and fallbacks to prevent "undefined" errors
     const { error } = await supabase.from('profiles').insert({
       id: id,
-      email: email_addresses[0].email_address,
-      full_name: `${first_name || ''} ${last_name || ''}`.trim(),
-      avatar_url: image_url,
+      email: email_addresses?.[0]?.email_address || "no-email@provided.com",
+      full_name: `${first_name || ''} ${last_name || ''}`.trim() || "New User",
+      avatar_url: image_url || "",
     })
 
     if (error) {
@@ -80,7 +82,7 @@ export async function POST(req: Request) {
       })
     }
     
-    console.log('✅ SUCCESS: User synced to Supabase!')
+    console.log('SUCCESS: User synced to Supabase!')
   }
 
   return new Response(JSON.stringify({ success: true }), { 
